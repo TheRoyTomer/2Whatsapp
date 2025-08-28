@@ -42,7 +42,49 @@ class SmsReceiver : BroadcastReceiver() {
             }
         }
     }
-    ///***R***
+
+    ///***R + ***
+    private fun forwardMessageViaWhatsApp(context: Context, sendTo:  Set<String>?, sender: String?, message: String) {
+        if (sendTo.isNullOrEmpty()) return
+
+        val targets = sendTo.map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+        if (targets.isEmpty()) return
+
+        val failedNumbers = StringBuilder()
+
+        val safeSender = if (sender != null) sender else "Unknown"
+        val text = "From: " + safeSender + "\nMsg: " + message
+
+        val iterator = targets.iterator()
+        while (iterator.hasNext()) {
+            val number = iterator.next()
+
+            val sendIntent = Intent(Intent.ACTION_VIEW)
+            sendIntent.setPackage("com.whatsapp")
+            val uri = Uri.parse("https://api.whatsapp.com/send?phone="
+                    + number
+                    + "&text="
+                    + Uri.encode(text)
+            )
+            sendIntent.data = uri
+            sendIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+            try {
+                context.startActivity(sendIntent)
+            } catch (ex: android.content.ActivityNotFoundException) {
+                if (failedNumbers.isNotEmpty()) failedNumbers.append("; ")
+                failedNumbers.append(number)
+            }
+        }
+
+        if (failedNumbers.isNotEmpty()) {
+            val summary = failedNumbers.toString() + "\nWhatsApp not installed"
+            Toast.makeText(context, summary, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+   /* ///***R***
     private fun forwardMessageViaWhatsApp(context: Context, sendTo:  Set<String>?, sender: String?, message: String) {
         if (sendTo.isNullOrEmpty()) return
 
@@ -78,7 +120,7 @@ class SmsReceiver : BroadcastReceiver() {
             val summary = failedNumbers.toString() + "\nWhatsApp not installed"
             Toast.makeText(context, summary, Toast.LENGTH_SHORT).show()
         }
-    }
+    }*/
 
     /*private fun forwardMessageViaWhatsApp(context: Context, sendTo: String?, sender: String?, message: String) {
         val sendIntent = Intent(Intent.ACTION_VIEW)

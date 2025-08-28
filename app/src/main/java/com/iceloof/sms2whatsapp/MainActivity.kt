@@ -49,9 +49,15 @@ class MainActivity : AppCompatActivity() {
 
         // Load saved phone number
         val sharedPref = getSharedPreferences("SMS2WhatsAppPreferences", Context.MODE_PRIVATE)
-        //***R***
+
+        //***R+***
+        val savedPhoneNumbers = sharedPref.getStringSet("phoneNumbers", emptySet()) ?: emptySet()
+        phoneNumberEditText.setText(savedPhoneNumbers.joinToString(separator = ";"))
+
+    }
+        /*//***R***
         val savedPhoneNumbers = sharedPref.getStringSet("phoneNumbers", null)
-        phoneNumberEditText.setText(savedPhoneNumbers)
+        phoneNumberEditText.setText(savedPhoneNumbers)*/
 
         /*val savedPhoneNumber = sharedPref.getString("phoneNumber", null)
         phoneNumberEditText.setText(savedPhoneNumber)*/
