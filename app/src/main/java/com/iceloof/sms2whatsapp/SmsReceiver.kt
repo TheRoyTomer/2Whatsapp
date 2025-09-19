@@ -9,6 +9,7 @@ import android.os.PowerManager
 import android.telephony.SmsMessage
 import android.util.Log
 import android.widget.Toast
+import java.lang.Thread.sleep
 
 @Suppress("DEPRECATION")
 class SmsReceiver : BroadcastReceiver() {
@@ -33,7 +34,7 @@ class SmsReceiver : BroadcastReceiver() {
                     PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
                     "SMS2WhatsApp::MyWakelockTag"
                 )
-                wakeLock.acquire(15000) // Wake up the screen for 15 seconds
+                wakeLock.acquire(20000) // Wake up the screen for 20 seconds
                 // Log the message
                 Log.d("SmsReceiver", "From: $sender, Message: $message")
                 // Forward the message via WhatsApp
@@ -55,26 +56,38 @@ class SmsReceiver : BroadcastReceiver() {
         val safeSender = if (sender != null) sender else "Unknown"
         val text = "From: " + safeSender + "\nMsg: " + message
 
-        val iterator = targets.iterator()
-        while (iterator.hasNext()) {
-            val number = iterator.next()
+        targets.forEachIndexed { index, number ->
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                val sendIntent = Intent(Intent.ACTION_VIEW)
+                sendIntent.setPackage("com.whatsapp")
+                val uri = Uri.parse("https://api.whatsapp.com/send?phone="
+                        + number
+                        + "&text="
+                        + Uri.encode(text)
+                )
+                sendIntent.data = uri
+                sendIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-            val sendIntent = Intent(Intent.ACTION_VIEW)
-            sendIntent.setPackage("com.whatsapp")
-            val uri = Uri.parse("https://api.whatsapp.com/send?phone="
-                    + number
-                    + "&text="
-                    + Uri.encode(text)
-            )
-            sendIntent.data = uri
-            sendIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-            try {
-                context.startActivity(sendIntent)
-            } catch (ex: android.content.ActivityNotFoundException) {
-                if (failedNumbers.isNotEmpty()) failedNumbers.append("; ")
-                failedNumbers.append(number)
-            }
+
+                try {
+                    context.startActivity(sendIntent)
+                } catch (ex: android.content.ActivityNotFoundException) {
+                    if (failedNumbers.isNotEmpty()) failedNumbers.append(";")
+                    failedNumbers.append(number)
+                }
+            }, (index * 3500).toLong())
+
+            val totalTargets = targets.size + 1L
+            val totalTime = totalTargets * 3500L
+
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                val devicePolicyManager = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+                val componentName = android.content.ComponentName(context, MyDeviceAdminReceiver::class.java)
+                if (devicePolicyManager.isAdminActive(componentName)) {
+                    devicePolicyManager.lockNow()
+                }
+            }, totalTime)
         }
 
         if (failedNumbers.isNotEmpty()) {
@@ -82,9 +95,10 @@ class SmsReceiver : BroadcastReceiver() {
             Toast.makeText(context, summary, Toast.LENGTH_SHORT).show()
         }
     }
+}
 
 
-   /* ///***R***
+  /*  ///***R***
     private fun forwardMessageViaWhatsApp(context: Context, sendTo:  Set<String>?, sender: String?, message: String) {
         if (sendTo.isNullOrEmpty()) return
 
@@ -120,9 +134,9 @@ class SmsReceiver : BroadcastReceiver() {
             val summary = failedNumbers.toString() + "\nWhatsApp not installed"
             Toast.makeText(context, summary, Toast.LENGTH_SHORT).show()
         }
-    }*/
+    }
 
-    /*private fun forwardMessageViaWhatsApp(context: Context, sendTo: String?, sender: String?, message: String) {
+    private fun forwardMessageViaWhatsApp(context: Context, sendTo: String?, sender: String?, message: String) {
         val sendIntent = Intent(Intent.ACTION_VIEW)
         sendIntent.setPackage("com.whatsapp")
         sendIntent.data = Uri.parse("https://api.whatsapp.com/send?phone=$sendTo&text=${Uri.encode("From: $sender\nMsg: $message")}")
@@ -132,5 +146,6 @@ class SmsReceiver : BroadcastReceiver() {
         } catch (ex: android.content.ActivityNotFoundException) {
             Toast.makeText(context, "WhatsApp not installed.", Toast.LENGTH_SHORT).show()
         }
-    }*/
+    }
 }
+*/

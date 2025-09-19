@@ -6,21 +6,32 @@ import android.content.ComponentName
 import android.content.Context
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+
 
 class AccessibilityService : AccessibilityService() {
 
+    ///***R***
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.packageName == "com.whatsapp") {
             val rootNode = rootInActiveWindow ?: return
+
+            Log.d("AccessibilityService", "Looking for send button...")
             val sendButtonNode = findNodeByContentDescription(rootNode, "Send")
-            Thread.sleep(500)
+            Log.d("AccessibilityService", if (sendButtonNode != null) "Found button" else "Button not found")
+
+                //val sendButtonNode = findNodeByContentDescription(rootNode, "Send")
+            Thread.sleep(1000)
             if (sendButtonNode != null) {
                 sendButtonNode.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                Thread.sleep(500)
+                Log.d("AccessibilityService", "Click action performed")
+                Thread.sleep(1000)
                 performGlobalAction(GLOBAL_ACTION_BACK)
-                Thread.sleep(500)
-                performGlobalAction(GLOBAL_ACTION_HOME)
-                lockScreen()
+                Thread.sleep(1000)
+                //performGlobalAction(GLOBAL_ACTION_HOME)
+                //lockScreen()
             }
         }
     }

@@ -47,21 +47,10 @@ class MainActivity : AppCompatActivity() {
             checkPermissions()
         }
 
-        // Load saved phone number
+        // Load saved phone numbers
         val sharedPref = getSharedPreferences("SMS2WhatsAppPreferences", Context.MODE_PRIVATE)
-
-        //***R+***
         val savedPhoneNumbers = sharedPref.getStringSet("phoneNumbers", emptySet()) ?: emptySet()
         phoneNumberEditText.setText(savedPhoneNumbers.joinToString(separator = ";"))
-
-    }
-        /*//***R***
-        val savedPhoneNumbers = sharedPref.getStringSet("phoneNumbers", null)
-        phoneNumberEditText.setText(savedPhoneNumbers)*/
-
-        /*val savedPhoneNumber = sharedPref.getString("phoneNumber", null)
-        phoneNumberEditText.setText(savedPhoneNumber)*/
-
     }
 
     companion object {
@@ -69,13 +58,12 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_CODE_ENABLE_ADMIN = 1
     }
 
-    //***R***
     private fun savePhoneNumbers() {
-        val inputs = phoneNumberEditText.text.toString();
+        val inputs = phoneNumberEditText.text.toString()
         val numbersList = inputs
             .split(";")
-            .map {it.trim()}
-            .filter { it.isNotEmpty()}
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
 
         val sharedPref = getSharedPreferences("SMS2WhatsAppPreferences", Context.MODE_PRIVATE)
 
@@ -85,16 +73,6 @@ class MainActivity : AppCompatActivity() {
         }
         Toast.makeText(this, "Phone numbers saved", Toast.LENGTH_SHORT).show()
     }
-
-   /* private fun savePhoneNumber() {
-        val phoneNumber = phoneNumberEditText.text.toString()
-        val sharedPref = getSharedPreferences("SMS2WhatsAppPreferences", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("phoneNumber", phoneNumber)
-            apply()
-        }
-        Toast.makeText(this, "Phone number saved", Toast.LENGTH_SHORT).show()
-    }*/
 
     private fun checkPermissions() {
         checkAndRequestPermissions()
@@ -129,7 +107,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         val permissionsToRequest = permissions.filter {
-            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
         if (permissionsToRequest.isNotEmpty()) {
@@ -138,8 +116,6 @@ class MainActivity : AppCompatActivity() {
             // All permissions are granted
             Toast.makeText(this, "All permissions are granted", Toast.LENGTH_SHORT).show()
         }
-
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -153,10 +129,6 @@ class MainActivity : AppCompatActivity() {
                 // All permissions are granted
                 Toast.makeText(this, "All permissions are granted", Toast.LENGTH_SHORT).show()
             }
-//            else {
-//                // Some permissions are denied
-//                Toast.makeText(this, "Permissions denied: $deniedPermissions", Toast.LENGTH_SHORT).show()
-//            }
         }
     }
 
@@ -185,4 +157,3 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 }
-
